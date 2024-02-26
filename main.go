@@ -48,6 +48,22 @@ type Search struct {
     Results    Results
 }
 
+func (s *Search) IsLastPage() bool {
+    return s.NextPage >= s.TotalPages
+}
+
+func (s *Search) CurrentPage() int {
+    if s.NextPage == 1 {
+        return s.NextPage
+    }
+
+    return s.NextPage - 1
+}
+
+func (s *Search) PreviousPage() int {
+    return s.CurrentPage() - 1
+}
+
 var tpl = template.Must(template.ParseFiles("index.html"))
 var apiKey *string
 
@@ -80,7 +96,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     search.NextPage = next
-    pageSize := 20
+    pageSize := 2
 
     endpoint := fmt.Sprintf("https://newsapi.org/v2/everything?q=%s&pageSize=%d&page=%d&apiKey=%s&sortBy=publishedAt&language=en", url.QueryEscape(search.SearchKey), pageSize, search.NextPage, *apiKey)
     resp, err := http.Get(endpoint)
@@ -103,6 +119,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     search.TotalPages = int(math.Ceil(float64(search.Results.TotalResults / pageSize)))
+
+    if ok := !search.IsLastPage(); ok {
+        search.NextPage++
+    }
+
     err = tpl.Execute(w, search)
     if err != nil {
         w.WriteHeader(http.StatusInternalServerError)
