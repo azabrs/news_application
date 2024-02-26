@@ -96,7 +96,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     search.NextPage = next
-    pageSize := 2
+    pageSize := 20
 
     endpoint := fmt.Sprintf("https://newsapi.org/v2/everything?q=%s&pageSize=%d&page=%d&apiKey=%s&sortBy=publishedAt&language=en", url.QueryEscape(search.SearchKey), pageSize, search.NextPage, *apiKey)
     resp, err := http.Get(endpoint)
